@@ -6,15 +6,20 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="//yoursite.com">
-  <title>Archives: 2017/8 | clyang的技術筆記</title>
+  <title>非固定制Hinet IPv6 Dual Stack在Ubiquiti Edgerouter上Prefix的更新問題 | clyang的技術筆記</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="clyang的技術筆記">
-<meta property="og:url" content="//yoursite.com/archives/2017/08/index.html">
+  <meta name="description" content="徵狀使用Hinet非固定制方案並且有申請IPv6 Dual Stack的使用者，透過Edgerouter當作分享器時，串在Edgerouter後的電腦如果長期不關機，會碰到當Hinet強制斷線時重撥後，這些電腦雖然可以取得新的IPv6位置，但卻喪失所有的IPv6連線能力。">
+<meta name="keywords" content="Edgerouter,IPv6">
+<meta property="og:type" content="article">
+<meta property="og:title" content="非固定制Hinet IPv6 Dual Stack在Ubiquiti Edgerouter上Prefix的更新問題">
+<meta property="og:url" content="//yoursite.com/2017/08/16/edgerouter-ipv6-prefix-issue/index.html">
 <meta property="og:site_name" content="clyang的技術筆記">
+<meta property="og:description" content="徵狀使用Hinet非固定制方案並且有申請IPv6 Dual Stack的使用者，透過Edgerouter當作分享器時，串在Edgerouter後的電腦如果長期不關機，會碰到當Hinet強制斷線時重撥後，這些電腦雖然可以取得新的IPv6位置，但卻喪失所有的IPv6連線能力。">
 <meta property="og:locale" content="zh">
+<meta property="og:updated_time" content="2017-08-18T12:08:20.209Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="clyang的技術筆記">
+<meta name="twitter:title" content="非固定制Hinet IPv6 Dual Stack在Ubiquiti Edgerouter上Prefix的更新問題">
+<meta name="twitter:description" content="徵狀使用Hinet非固定制方案並且有申請IPv6 Dual Stack的使用者，透過Edgerouter當作分享器時，串在Edgerouter後的電腦如果長期不關機，會碰到當Hinet強制斷線時重撥後，這些電腦雖然可以取得新的IPv6位置，但卻喪失所有的IPv6連線能力。">
   
     <link rel="alternative" href="/atom.xml" title="clyang的技術筆記" type="application/atom+xml">
   
@@ -136,36 +141,46 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-edgerouter-ipv6-prefix-issue" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2017" class="archive-year">2017</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2017/08/16/edgerouter-ipv6-prefix-issue/" class="archive-article-date">
-  	<time datetime="2017-08-16T04:49:04.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-16</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2017/08/16/edgerouter-ipv6-prefix-issue/">非固定制Hinet IPv6 Dual Stack在Ubiquiti Edgerouter上Prefix的更新問題</a>
+    <h1 class="article-title" itemprop="name">
+      非固定制Hinet IPv6 Dual Stack在Ubiquiti Edgerouter上Prefix的更新問題
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
+        
+        <a href="/2017/08/16/edgerouter-ipv6-prefix-issue/" class="archive-article-date">
+  	<time datetime="2017-08-16T04:49:04.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-16</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="徵狀"><a href="#徵狀" class="headerlink" title="徵狀"></a>徵狀</h3><p>使用Hinet非固定制方案並且有申請IPv6 Dual Stack的使用者，透過Edgerouter當作分享器時，串在Edgerouter後的電腦如果長期不關機，會碰到當Hinet強制斷線時重撥後，這些電腦雖然可以取得新的IPv6位置，但卻喪失所有的IPv6連線能力。<br><a id="more"></a></p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>在mac上觀察了一下，發現即使已經取得了新的IPv6位置，電腦依舊是使用重撥前的IPv6位置當做第一優先，所以全部的IPv6連線在Hinet重撥後都無法成功建立，於是ssh連進Edgerouter-X使用<code>radvdump</code>觀察router advertisement (RA)的狀況，發現Edgerouter-X依舊在advertise舊的IPv6 Prefix，透過<code>show interfaces</code>發現<code>switch0</code>上面綁著數個之前取得的IPv6 Prefix而沒有被清除掉，而<code>radvd</code>單純只看<code>switch0</code>上綁的IPv6位置來產生RA，導致接受到RA的電腦認為RA中的Prefix都是有效的，即使有取得新的IPv6位置，但MacOS或Windows在這樣的情下，皆會優先使用先前已生效的IPv6位置，所以導致連線失效。</p>
+<p>知道原因後，就容易解決了，只需要在每次PPPoE斷線後，把綁在<code>switch0</code>上的IPv6位置清除，當PPPoE重新連上取得新的IPv6位置後，<code>radvd</code>只會看到最新的IPv6位置，也就不會繼續advertise舊的Prefix，而在電腦端(無論是MacOS或Windows)，則會因為只接受到新的Prefix而認為先前的IPv6位置已經失效，從而改使用新的IPv6位置進行連線。</p>
+<h3 id="修改方法"><a href="#修改方法" class="headerlink" title="修改方法"></a>修改方法</h3><p>(1) ssh登入Edgerouter後，<code>sudo vi /etc/ppp/ip-down.d/remove_invalidv6.sh</code> 貼上下列內容<br>   <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/sh</span></div><div class="line"></div><div class="line">/sbin/ifconfig switch0 | grep -ivE <span class="string">'fe80'</span> | grep <span class="string">'inet6'</span> | awk <span class="string">'&#123;print $3&#125;'</span> | <span class="keyword">while</span> <span class="built_in">read</span> -r ipv6addr ; <span class="keyword">do</span></div><div class="line">    <span class="built_in">echo</span> <span class="string">"Removing <span class="variable">$ipv6addr</span> from switch0"</span> &gt;&gt; /tmp/ipv6_remove.log</div><div class="line">    /sbin/ip -6 addr del <span class="variable">$ipv6addr</span> dev switch0</div><div class="line"><span class="keyword">done</span></div><div class="line">/etc/init.d/radvd restart</div></pre></td></tr></table></figure></p>
+<p>(2) 存擋離開後，輸入: <code>sudo chmod +x /etc/ppp/ip-down.d/remove_invalidv6.sh</code></p>
+<p>(3) 修改此檔，<code>sudo vi /opt/vyatta/sbin/vyatta_gen_radvd.pl</code>，在243行會看到下列程式碼</p>
+   <figure class="highlight perl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Write parameters out to config file</span></div><div class="line"><span class="keyword">print</span> $FD_WR <span class="string">"    prefix $prefix &#123;\n"</span>;</div><div class="line"><span class="keyword">foreach</span> <span class="keyword">my</span> $key (<span class="keyword">keys</span> %prefix_param_hash) &#123;</div><div class="line">    <span class="keyword">print</span> $FD_WR <span class="string">"        $key $prefix_param_hash&#123;$key&#125;;\n"</span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">print</span> $FD_WR <span class="string">"    &#125;;\n"</span>;</div></pre></td></tr></table></figure>
+<p>  在倒數第二行, 新增一行code如下</p>
+  <figure class="highlight perl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Write parameters out to config file</span></div><div class="line">  <span class="keyword">print</span> $FD_WR <span class="string">"    prefix $prefix &#123;\n"</span>;</div><div class="line">  <span class="keyword">foreach</span> <span class="keyword">my</span> $key (<span class="keyword">keys</span> %prefix_param_hash) &#123;</div><div class="line">      <span class="keyword">print</span> $FD_WR <span class="string">"        $key $prefix_param_hash&#123;$key&#125;;\n"</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">print</span> $FD_WR <span class="string">"        DeprecatePrefix on;\n"</span>;  <span class="comment"># &lt;====================== 新增這一行!!</span></div><div class="line">  <span class="keyword">print</span> $FD_WR <span class="string">"    &#125;;\n"</span>;</div></pre></td></tr></table></figure>
+<p>(4) 存擋離開後, 輸入<code>sudo reboot</code>重開機即可. </p>
+<h3 id="小記"><a href="#小記" class="headerlink" title="小記"></a>小記</h3><p>這問題應該存在EdgeOS中很久了，在官方論壇中只看到有人問也沒人解，所以就自己跳下來解掉了。</p>
+<p>此為官方論壇討論串：<a href="https://community.ubnt.com/t5/EdgeMAX/Solution-for-client-losing-IPv6-connectivity-after-PPPoE-re/m-p/2019416" target="_blank" rel="external">Solution for client losing IPv6 connectivity after PPPoE re-assign the new prefix</a></p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -181,46 +196,69 @@
 		</ul>
 	</div>
 
-          
+      
 
-        </div>
-        <div class="clearfix"></div>
-    </header>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2017/08/15/Hello-World/" class="archive-article-date">
-  	<time datetime="2017-08-15T19:22:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-16</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/2017/08/15/Hello-World/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Hello World!</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
+        
+        
+    </div>
+</aside>
+
+
+
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2017/08/15/Hello-World/">Hello World!</a>
-    </h1>
+  
   
 
-        <div class="article-info info-on-right">
-          
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
   
 
-    
+  
+    <section id="comments">
+      <div id="disqus_thread"></div>
+        <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'true'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+          var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+          dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+      </script>
+      <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </section>
+  
 
 
           </div>
@@ -243,8 +281,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>clyang的技術筆記</title>
+  <subtitle>隨手亂記</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="//yoursite.com/"/>
+  <updated>2017-08-18T12:08:20.209Z</updated>
+  <id>//yoursite.com/</id>
+  
+  <author>
+    <name>clyang</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>非固定制Hinet IPv6 Dual Stack在Ubiquiti Edgerouter上Prefix的更新問題</title>
+    <link href="//yoursite.com/2017/08/16/edgerouter-ipv6-prefix-issue/"/>
+    <id>//yoursite.com/2017/08/16/edgerouter-ipv6-prefix-issue/</id>
+    <published>2017-08-16T04:49:04.000Z</published>
+    <updated>2017-08-18T12:08:20.209Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="徵狀"><a href="#徵狀" class="headerlink" title="徵狀"></a>徵狀</h3><p>使用Hinet非固定制方案並且有申請IPv6 Dual Stack的使用者，透過Edgerouter當作分享器時，串在Edgerouter後的電腦如果長期不關機，會碰到當Hinet強制斷線時重撥後，這些電腦雖然可以取得新的IPv6位置，但卻喪失所有的IPv6連線能力。<br><a id="more"></a></p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>在mac上觀察了一下，發現即使已經取得了新的IPv6位置，電腦依舊是使用重撥前的IPv6位置當做第一優先，所以全部的IPv6連線在Hinet重撥後都無法成功建立，於是ssh連進Edgerouter-X使用<code>radvdump</code>觀察router advertisement (RA)的狀況，發現Edgerouter-X依舊在advertise舊的IPv6 Prefix，透過<code>show interfaces</code>發現<code>switch0</code>上面綁著數個之前取得的IPv6 Prefix而沒有被清除掉，而<code>radvd</code>單純只看<code>switch0</code>上綁的IPv6位置來產生RA，導致接受到RA的電腦認為RA中的Prefix都是有效的，即使有取得新的IPv6位置，但MacOS或Windows在這樣的情下，皆會優先使用先前已生效的IPv6位置，所以導致連線失效。</p>
+<p>知道原因後，就容易解決了，只需要在每次PPPoE斷線後，把綁在<code>switch0</code>上的IPv6位置清除，當PPPoE重新連上取得新的IPv6位置後，<code>radvd</code>只會看到最新的IPv6位置，也就不會繼續advertise舊的Prefix，而在電腦端(無論是MacOS或Windows)，則會因為只接受到新的Prefix而認為先前的IPv6位置已經失效，從而改使用新的IPv6位置進行連線。</p>
+<h3 id="修改方法"><a href="#修改方法" class="headerlink" title="修改方法"></a>修改方法</h3><p>(1) ssh登入Edgerouter後，<code>sudo vi /etc/ppp/ip-down.d/remove_invalidv6.sh</code> 貼上下列內容<br>   <figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/sh</span></div><div class="line"></div><div class="line">/sbin/ifconfig switch0 | grep -ivE <span class="string">'fe80'</span> | grep <span class="string">'inet6'</span> | awk <span class="string">'&#123;print $3&#125;'</span> | <span class="keyword">while</span> <span class="built_in">read</span> -r ipv6addr ; <span class="keyword">do</span></div><div class="line">    <span class="built_in">echo</span> <span class="string">"Removing <span class="variable">$ipv6addr</span> from switch0"</span> &gt;&gt; /tmp/ipv6_remove.log</div><div class="line">    /sbin/ip -6 addr del <span class="variable">$ipv6addr</span> dev switch0</div><div class="line"><span class="keyword">done</span></div><div class="line">/etc/init.d/radvd restart</div></pre></td></tr></table></figure></p>
+<p>(2) 存擋離開後，輸入: <code>sudo chmod +x /etc/ppp/ip-down.d/remove_invalidv6.sh</code></p>
+<p>(3) 修改此檔，<code>sudo vi /opt/vyatta/sbin/vyatta_gen_radvd.pl</code>，在243行會看到下列程式碼</p>
+   <figure class="highlight perl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Write parameters out to config file</span></div><div class="line"><span class="keyword">print</span> $FD_WR <span class="string">"    prefix $prefix &#123;\n"</span>;</div><div class="line"><span class="keyword">foreach</span> <span class="keyword">my</span> $key (<span class="keyword">keys</span> %prefix_param_hash) &#123;</div><div class="line">    <span class="keyword">print</span> $FD_WR <span class="string">"        $key $prefix_param_hash&#123;$key&#125;;\n"</span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">print</span> $FD_WR <span class="string">"    &#125;;\n"</span>;</div></pre></td></tr></table></figure>
+<p>  在倒數第二行, 新增一行code如下</p>
+  <figure class="highlight perl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Write parameters out to config file</span></div><div class="line">  <span class="keyword">print</span> $FD_WR <span class="string">"    prefix $prefix &#123;\n"</span>;</div><div class="line">  <span class="keyword">foreach</span> <span class="keyword">my</span> $key (<span class="keyword">keys</span> %prefix_param_hash) &#123;</div><div class="line">      <span class="keyword">print</span> $FD_WR <span class="string">"        $key $prefix_param_hash&#123;$key&#125;;\n"</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">print</span> $FD_WR <span class="string">"        DeprecatePrefix on;\n"</span>;  <span class="comment"># &lt;====================== 新增這一行!!</span></div><div class="line">  <span class="keyword">print</span> $FD_WR <span class="string">"    &#125;;\n"</span>;</div></pre></td></tr></table></figure>
+<p>(4) 存擋離開後, 輸入<code>sudo reboot</code>重開機即可. </p>
+<h3 id="小記"><a href="#小記" class="headerlink" title="小記"></a>小記</h3><p>這問題應該存在EdgeOS中很久了，在官方論壇中只看到有人問也沒人解，所以就自己跳下來解掉了。</p>
+<p>此為官方論壇討論串：<a href="https://community.ubnt.com/t5/EdgeMAX/Solution-for-client-losing-IPv6-connectivity-after-PPPoE-re/m-p/2019416" target="_blank" rel="external">Solution for client losing IPv6 connectivity after PPPoE re-assign the new prefix</a></p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;徵狀&quot;&gt;&lt;a href=&quot;#徵狀&quot; class=&quot;headerlink&quot; title=&quot;徵狀&quot;&gt;&lt;/a&gt;徵狀&lt;/h3&gt;&lt;p&gt;使用Hinet非固定制方案並且有申請IPv6 Dual Stack的使用者，透過Edgerouter當作分享器時，串在Edgerouter後的電腦如果長期不關機，會碰到當Hinet強制斷線時重撥後，這些電腦雖然可以取得新的IPv6位置，但卻喪失所有的IPv6連線能力。&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="Edgerouter" scheme="//yoursite.com/tags/Edgerouter/"/>
+    
+      <category term="IPv6" scheme="//yoursite.com/tags/IPv6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Hello World!</title>
+    <link href="//yoursite.com/2017/08/15/Hello-World/"/>
+    <id>//yoursite.com/2017/08/15/Hello-World/</id>
+    <published>2017-08-15T19:22:00.000Z</published>
+    <updated>2017-08-16T03:23:04.455Z</updated>
+    
+    <content type="html"><![CDATA[<p>已經忘記是第幾次嘗試寫blog了 XD，希望這次可以撐久一點 kerker</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;已經忘記是第幾次嘗試寫blog了 XD，希望這次可以撐久一點 kerker&lt;/p&gt;
+
+    
+    </summary>
+    
+    
+  </entry>
+  
+</feed>
