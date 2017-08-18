@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.clyang.net/"/>
-  <updated>2017-08-18T15:13:31.966Z</updated>
+  <updated>2017-08-18T16:29:07.066Z</updated>
   <id>http://blog.clyang.net/</id>
   
   <author>
@@ -20,10 +20,9 @@
     <link href="http://blog.clyang.net/2017/08/18/use-http-204-reduce-bandwidth/"/>
     <id>http://blog.clyang.net/2017/08/18/use-http-204-reduce-bandwidth/</id>
     <published>2017-08-18T06:42:57.000Z</published>
-    <updated>2017-08-18T15:13:31.966Z</updated>
+    <updated>2017-08-18T16:29:07.066Z</updated>
     
-    <content type="html"><![CDATA[<p>找資料時發現一篇有趣的技術文，是由<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>所撰寫的「<a href="https://blog.stathat.com/2017/05/05/bandwidth.html" target="_blank" rel="external">83% Bandwidth Reduction via API ResponseChange</a>」。</p>
-<p>原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。</p>
+    <content type="html"><![CDATA[<p>找資料時發現一篇有趣的技術文，是由<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>所撰寫的「<a href="https://blog.stathat.com/2017/05/05/bandwidth.html" target="_blank" rel="external">83% Bandwidth Reduction via API ResponseChange</a>」。<br><a id="more"></a><br>原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">HTTP/1.1 200 OK</div><div class="line">Content-Type: application/json</div><div class="line">Date: Tue, 02 May 2017 14:53:45 GMT</div><div class="line">Content-Length: 25</div><div class="line">Connection: keep-alive</div><div class="line"></div><div class="line">&#123;&quot;status&quot;:200,&quot;msg&quot;:&quot;ok&quot;&#125;</div></pre></td></tr></table></figure>
 <p>但是當你的量大到像是<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>，每個月有多達1,500億則request，既使每則request都執行成功而回應上面的json，也會使用超過20TB的量 (更別提如果執行失敗，<code>msg</code>還會帶一些說明而佔用更多bytes)。</p>
 <p>在實際使用情境下，絕大多數的request都是正常的執行，他們開始研究要怎麼樣能夠用最少的資料量讓使用者得知他們的request已經成功被執行，再參考<a href="https://tools.ietf.org/html/rfc7231" target="_blank" rel="external">RFC-7231</a>後，他們看到了一個常常被遺忘的http狀態碼: <code>204</code>，根據<a href="https://tools.ietf.org/html/rfc7231" target="_blank" rel="external">RFC-7231</a>，他的定義是</p>
@@ -39,7 +38,7 @@
     
     <summary type="html">
     
-      &lt;p&gt;找資料時發現一篇有趣的技術文，是由&lt;a href=&quot;https://www.stathat.com/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;StatHat&lt;/a&gt;所撰寫的「&lt;a href=&quot;https://blog.stathat.com/2017
+      &lt;p&gt;找資料時發現一篇有趣的技術文，是由&lt;a href=&quot;https://www.stathat.com/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;StatHat&lt;/a&gt;所撰寫的「&lt;a href=&quot;https://blog.stathat.com/2017/05/05/bandwidth.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;83% Bandwidth Reduction via API ResponseChange&lt;/a&gt;」。&lt;br&gt;
     
     </summary>
     

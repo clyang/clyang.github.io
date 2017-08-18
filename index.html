@@ -171,20 +171,10 @@ ga('send', 'pageview');
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>找資料時發現一篇有趣的技術文，是由<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>所撰寫的「<a href="https://blog.stathat.com/2017/05/05/bandwidth.html" target="_blank" rel="external">83% Bandwidth Reduction via API ResponseChange</a>」。</p>
-<p>原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">HTTP/1.1 200 OK</div><div class="line">Content-Type: application/json</div><div class="line">Date: Tue, 02 May 2017 14:53:45 GMT</div><div class="line">Content-Length: 25</div><div class="line">Connection: keep-alive</div><div class="line"></div><div class="line">&#123;&quot;status&quot;:200,&quot;msg&quot;:&quot;ok&quot;&#125;</div></pre></td></tr></table></figure>
-<p>但是當你的量大到像是<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>，每個月有多達1,500億則request，既使每則request都執行成功而回應上面的json，也會使用超過20TB的量 (更別提如果執行失敗，<code>msg</code>還會帶一些說明而佔用更多bytes)。</p>
-<p>在實際使用情境下，絕大多數的request都是正常的執行，他們開始研究要怎麼樣能夠用最少的資料量讓使用者得知他們的request已經成功被執行，再參考<a href="https://tools.ietf.org/html/rfc7231" target="_blank" rel="external">RFC-7231</a>後，他們看到了一個常常被遺忘的http狀態碼: <code>204</code>，根據<a href="https://tools.ietf.org/html/rfc7231" target="_blank" rel="external">RFC-7231</a>，他的定義是</p>
-<blockquote>
-<p>The 204 (No Content) status code indicates that the server has successfully fulfilled the request and that there is no additional content to send in the response payload body.</p>
-<p>翻成白話文就是：如果client收到http 204 status code就表示你送出的request有成功的被滿足，句點！沒有其他廢話！</p>
-</blockquote>
-<p>於是乎，回傳的http header變成只有25 bytes，省下了大概125 bytes！</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">HTTP/1.1 204 No Content</div></pre></td></tr></table></figure>
-<p>根據<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>的觀察，這樣的改變每個月幫他們省下了大概17TB的流量，相當驚人吧！</p>
-<p>結論：你得先有如此大的量才需要考慮從http response code來省流量，kerker</p>
-
+        <p>找資料時發現一篇有趣的技術文，是由<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>所撰寫的「<a href="https://blog.stathat.com/2017/05/05/bandwidth.html" target="_blank" rel="external">83% Bandwidth Reduction via API ResponseChange</a>」。<br>
+        
+          <a class="article-more-a" href="/2017/08/18/use-http-204-reduce-bandwidth/#more">more >></a>
+        
       
 
       

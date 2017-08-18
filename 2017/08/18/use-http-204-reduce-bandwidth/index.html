@@ -8,18 +8,18 @@
   <link rel="dns-prefetch" href="http://blog.clyang.net">
   <title>使用HTTP 204狀態碼來節省API的頻寬用量 | clyang的技術筆記</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="找資料時發現一篇有趣的技術文，是由StatHat所撰寫的「83% Bandwidth Reduction via API ResponseChange」。 原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。 1234567HTTP">
+  <meta name="description" content="找資料時發現一篇有趣的技術文，是由StatHat所撰寫的「83% Bandwidth Reduction via API ResponseChange」。">
 <meta name="keywords" content="http 204,網路技術">
 <meta property="og:type" content="article">
 <meta property="og:title" content="使用HTTP 204狀態碼來節省API的頻寬用量">
 <meta property="og:url" content="http://blog.clyang.net/2017/08/18/use-http-204-reduce-bandwidth/index.html">
 <meta property="og:site_name" content="clyang的技術筆記">
-<meta property="og:description" content="找資料時發現一篇有趣的技術文，是由StatHat所撰寫的「83% Bandwidth Reduction via API ResponseChange」。 原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。 1234567HTTP">
+<meta property="og:description" content="找資料時發現一篇有趣的技術文，是由StatHat所撰寫的「83% Bandwidth Reduction via API ResponseChange」。">
 <meta property="og:locale" content="zh">
-<meta property="og:updated_time" content="2017-08-18T15:13:31.966Z">
+<meta property="og:updated_time" content="2017-08-18T16:29:07.066Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="使用HTTP 204狀態碼來節省API的頻寬用量">
-<meta name="twitter:description" content="找資料時發現一篇有趣的技術文，是由StatHat所撰寫的「83% Bandwidth Reduction via API ResponseChange」。 原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。 1234567HTTP">
+<meta name="twitter:description" content="找資料時發現一篇有趣的技術文，是由StatHat所撰寫的「83% Bandwidth Reduction via API ResponseChange」。">
   
     <link rel="alternative" href="/atom.xml" title="clyang的技術筆記" type="application/atom+xml">
   
@@ -174,8 +174,7 @@ ga('send', 'pageview');
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>找資料時發現一篇有趣的技術文，是由<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>所撰寫的「<a href="https://blog.stathat.com/2017/05/05/bandwidth.html" target="_blank" rel="external">83% Bandwidth Reduction via API ResponseChange</a>」。</p>
-<p>原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。</p>
+        <p>找資料時發現一篇有趣的技術文，是由<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>所撰寫的「<a href="https://blog.stathat.com/2017/05/05/bandwidth.html" target="_blank" rel="external">83% Bandwidth Reduction via API ResponseChange</a>」。<br><a id="more"></a><br>原理其實相當簡單，一般在設計RESTful API時，最常見的作法就是回傳一個json，裡面通常都會包涵執行結果的狀態碼以及錯誤說明，譬如說下方這個回傳執行成功的範例，包含http header也只有152 bytes。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">HTTP/1.1 200 OK</div><div class="line">Content-Type: application/json</div><div class="line">Date: Tue, 02 May 2017 14:53:45 GMT</div><div class="line">Content-Length: 25</div><div class="line">Connection: keep-alive</div><div class="line"></div><div class="line">&#123;&quot;status&quot;:200,&quot;msg&quot;:&quot;ok&quot;&#125;</div></pre></td></tr></table></figure>
 <p>但是當你的量大到像是<a href="https://www.stathat.com/" target="_blank" rel="external">StatHat</a>，每個月有多達1,500億則request，既使每則request都執行成功而回應上面的json，也會使用超過20TB的量 (更別提如果執行失敗，<code>msg</code>還會帶一些說明而佔用更多bytes)。</p>
 <p>在實際使用情境下，絕大多數的request都是正常的執行，他們開始研究要怎麼樣能夠用最少的資料量讓使用者得知他們的request已經成功被執行，再參考<a href="https://tools.ietf.org/html/rfc7231" target="_blank" rel="external">RFC-7231</a>後，他們看到了一個常常被遺忘的http狀態碼: <code>204</code>，根據<a href="https://tools.ietf.org/html/rfc7231" target="_blank" rel="external">RFC-7231</a>，他的定義是</p>
