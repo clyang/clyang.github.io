@@ -54,14 +54,16 @@
     <link href="//yoursite.com/2017/08/15/Hello-World/"/>
     <id>//yoursite.com/2017/08/15/Hello-World/</id>
     <published>2017-08-15T19:22:00.000Z</published>
-    <updated>2017-08-16T03:23:04.455Z</updated>
+    <updated>2017-08-18T12:28:10.324Z</updated>
     
     <content type="html"><![CDATA[<p>已經忘記是第幾次嘗試寫blog了 XD，希望這次可以撐久一點 kerker</p>
+<p>(BTW，擺在github pages上面，所以沒有enable https.)</p>
 ]]></content>
     
     <summary type="html">
     
       &lt;p&gt;已經忘記是第幾次嘗試寫blog了 XD，希望這次可以撐久一點 kerker&lt;/p&gt;
+&lt;p&gt;(BTW，擺在github pages上面，所以沒有enable https.)&lt;/p&gt;
 
     
     </summary>
