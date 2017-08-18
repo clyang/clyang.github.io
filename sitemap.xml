@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.clyang.net/2017/08/18/use-http-204-reduce-bandwidth/</loc>
+    
+    <lastmod>2017-08-18T15:13:31.966Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.clyang.net/2017/08/16/edgerouter-ipv6-prefix-issue/</loc>
     
     <lastmod>2017-08-18T14:03:38.947Z</lastmod>
