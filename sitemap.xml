@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://blog.clyang.net/2017/08/19/aria2c-speed-test-tip/</loc>
+    
+    <lastmod>2017-08-20T08:10:05.844Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://blog.clyang.net/2017/08/18/use-http-204-reduce-bandwidth/</loc>
     
     <lastmod>2017-08-18T16:29:07.066Z</lastmod>

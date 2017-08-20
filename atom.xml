@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.clyang.net/"/>
-  <updated>2017-08-18T16:29:07.066Z</updated>
+  <updated>2017-08-20T08:10:05.844Z</updated>
   <id>http://blog.clyang.net/</id>
   
   <author>
@@ -14,6 +14,49 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>網路測速小技巧：使用aria2c</title>
+    <link href="http://blog.clyang.net/2017/08/19/aria2c-speed-test-tip/"/>
+    <id>http://blog.clyang.net/2017/08/19/aria2c-speed-test-tip/</id>
+    <published>2017-08-19T23:26:29.000Z</published>
+    <updated>2017-08-20T08:10:05.844Z</updated>
+    
+    <content type="html"><![CDATA[<p>我是個喜歡測試網路速度的無聊人，<a href="http://beta.speedtest.net/" target="_blank" rel="external">Speedtest.net</a>雖然方便但沒辦法提供多線+大檔案(e.g 10GB以上的大小)的長時間測試，所以就想到<a href="https://aria2.github.io/" target="_blank" rel="external"><code>aria2c</code></a>這個在cli下的的多線下載軟體，不過我又不想實際把檔案寫入硬碟上 (尤其這年頭大家都用SSD，為了測試寫10G的資料實在很傷啊)，所以研究了一下，湊出了以下的解法。 <strong>注意！此方法僅適用於Unix或MacOS</strong><br><a id="more"></a><br>如果你的電腦還沒有安裝<a href="https://aria2.github.io/" target="_blank" rel="external"><code>aria2c</code></a>，請先自行安裝好，然後輸入以下指令即可讓你同時16線抓取遠端的一個大檔而且不會將檔案實際寫入磁碟中。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#</span> 抓取一個1.5G的iso檔</div><div class="line">aria2c -d /dev -o null --allow-overwrite=true -x 16 -s 16 --file-allocation=none --summary-interval=0 http://tw.archive.ubuntu.com/ubuntu-cd/17.04/ubuntu-17.04-desktop-amd64.iso</div></pre></td></tr></table></figure>
+<p>附上各個參數的說明給好奇的你：</p>
+<ul>
+<li><code>-d /dev</code> : 將檔案輸出至/dev中</li>
+<li><code>-o null</code> : 將檔案命名為null</li>
+<li><code>--allow-overwrite=true</code> : 如果磁碟上有同樣名稱的檔案，允許直接覆蓋過去</li>
+<li><code>-x 16</code> : 把單一server允許建立的連線數從1個增加為16個</li>
+<li><code>-s 16</code> : 指定用要16個connection同時下載單一檔案，預設是5</li>
+<li><code>--file-allocation=none</code> : 不需先allocate磁碟空間</li>
+<li><code>--summary-interval=0</code> : 不要每個一陣子就顯示summary</li>
+</ul>
+<p>全部結合在一起後的效果，用白話文來說就是:</p>
+<blockquote>
+<p>幫我把某個url的檔案用16線給我抓回來，寫進去/dev/null裡面，如果/dev/null已經存在，不要理他，硬寫進去即可，然後也不用幫我在磁碟上取得一塊空間，而且summary看了很煩，所以也不用顯示了。</p>
+</blockquote>
+<p>透過這方式你就可以指定一個超大的檔案來測試一下你的ISP連外速度的穩定度啦！</p>
+<p>最後小bouns，附上一些超過10GB的測速檔案給愛測速的你 kerker</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line">http://download.xs4all.nl/test/10GB.bin</div><div class="line">http://lg-tor.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.ams2-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.chi2-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.den2-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.fra2-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.la2-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.lon-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.mad-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.mia-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.ny-z.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.par-c.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.sea-z.fdcservers.net/10GBtest.zip</div><div class="line">http://lg.vie-c.fdcservers.net/10GBtest.zip</div><div class="line">http://mirror.filearena.net/pub/speed/SpeedTest_2048MB.dat</div><div class="line">http://mirror.i3d.net/10000mb.bin</div><div class="line">http://mirror.nl.leaseweb.net/speedtest/10000mb.bin</div><div class="line">http://mirror.us.leaseweb.net/speedtest/10000mb.bin</div><div class="line">http://mirror.widexs.nl/ftp/pub/speed/10000mb.bin</div><div class="line">http://mirrors-lax.webnx.com/test/10gb.bin</div><div class="line">http://nl.altushost.com/10gb.test</div><div class="line">http://ping6.online.net/10000Mo.dat</div><div class="line">http://proof.ovh.ca/files/10Gio.dat</div><div class="line">http://proof.ovh.net/files/10Gio.dat</div><div class="line">http://repos.lax-noc.com/speedtests/100gb.bin</div><div class="line">http://repos.mia.lax-noc.com/speedtests/100gb.bin</div><div class="line">http://speed.hetzner.de/10GB.bin</div><div class="line">http://speedtest.belwue.net/100G</div><div class="line">http://speedtest.serverius.net/files/10000mb.bin</div><div class="line">http://speedtest.sjc01.softlayer.com/downloads/test10000.zip</div><div class="line">http://speedtest.wdc01.softlayer.com/downloads/test10000.zip</div><div class="line">http://speedtest6.tele2.net/100GB.zip</div><div class="line">https://speed.hostkey.ru/ftp/10000mb.bin</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;我是個喜歡測試網路速度的無聊人，&lt;a href=&quot;http://beta.speedtest.net/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Speedtest.net&lt;/a&gt;雖然方便但沒辦法提供多線+大檔案(e.g 10GB以上的大小)的長時間測試，所以就想到&lt;a href=&quot;https://aria2.github.io/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;&lt;code&gt;aria2c&lt;/code&gt;&lt;/a&gt;這個在cli下的的多線下載軟體，不過我又不想實際把檔案寫入硬碟上 (尤其這年頭大家都用SSD，為了測試寫10G的資料實在很傷啊)，所以研究了一下，湊出了以下的解法。 &lt;strong&gt;注意！此方法僅適用於Unix或MacOS&lt;/strong&gt;&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="aria2c" scheme="http://blog.clyang.net/tags/aria2c/"/>
+    
+      <category term="speedtest" scheme="http://blog.clyang.net/tags/speedtest/"/>
+    
+      <category term="網路技術" scheme="http://blog.clyang.net/tags/%E7%B6%B2%E8%B7%AF%E6%8A%80%E8%A1%93/"/>
+    
+  </entry>
   
   <entry>
     <title>使用HTTP 204狀態碼來節省API的頻寬用量</title>
@@ -43,9 +86,9 @@
     </summary>
     
     
-      <category term="http 204" scheme="http://blog.clyang.net/tags/http-204/"/>
-    
       <category term="網路技術" scheme="http://blog.clyang.net/tags/%E7%B6%B2%E8%B7%AF%E6%8A%80%E8%A1%93/"/>
+    
+      <category term="http 204" scheme="http://blog.clyang.net/tags/http-204/"/>
     
   </entry>
   
