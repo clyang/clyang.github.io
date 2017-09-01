@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.clyang.net/"/>
-  <updated>2017-09-01T13:49:23.176Z</updated>
+  <updated>2017-09-01T14:53:52.195Z</updated>
   <id>http://blog.clyang.net/</id>
   
   <author>
@@ -20,9 +20,9 @@
     <link href="http://blog.clyang.net/2017/09/01/tplink-940n-v5-lede-wifi-patch/"/>
     <id>http://blog.clyang.net/2017/09/01/tplink-940n-v5-lede-wifi-patch/</id>
     <published>2017-09-01T04:33:44.000Z</published>
-    <updated>2017-09-01T13:49:23.176Z</updated>
+    <updated>2017-09-01T14:53:52.195Z</updated>
     
-    <content type="html"><![CDATA[<p>近期朋友入手一台TP-Link WR940N V5，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。<br><a id="more"></a></p>
+    <content type="html"><![CDATA[<p>近期朋友入手一台TP-Link WR940N V5，是一款使用TP9343 SOC (Qualcomm的QCA9561閹割版，少了USB以及PCIe的支援)擁有4MB flash及32MB ROM，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。<br><a id="more"></a></p>
 <p>我本身對AP也不是非常懂，於是請教了在某AP ODM大廠就職的<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>，根據他Google一番，問題似乎發生在TP-Link依舊採用Atheros rate control algorithm，但這algorithm在訊號擁擠的環境下，表現很差，所以各大第三方firmware (<a href="https://openwrt.org/" target="_blank" rel="external">Openwrt</a>、dd-wrt)都改用<a href="https://lwn.net/Articles/376765/" target="_blank" rel="external">minstrel_ht</a> rate algorithm，而TP-Link or 他的BSP廠也沒有上對應的patch。<a href="https://patchwork.kernel.org/patch/2676971/" target="_blank" rel="external">詳情可以參考</a>:</p>
 <blockquote>
 <p>The ath9k rate control algorithm has various architectural issues that make it a poor fit in scenarios like congested environments etc.</p>
@@ -32,7 +32,7 @@
 <p>刷的過程本想應該很順利，以為就把firmware透過TP-Link的後台上傳<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a> firmware即可，結果發現TP-Link竟然開始會檢查是不是官方firwmare，在<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>檢查了bootloader code後，發現雖然TFTP也會檢查product version，但卻檢查的不太嚴謹，所以只需要把下載回來的firmware (-factory.bin結尾那個)更名為<code>wr940nv5_tp_recovery.bin</code>，然後使用TFTP刷進去即可（刷法Google一下即可）。</p>
 <p>刷好後，觀察了一兩天，Wi-fi不穩的問題煙消雲散，但卻發現一個詭異的問題，Wi-fi的download速度一直上不去(upload可以打到80多Mpbs)，在<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a>上跑了iperf3當server，然後用T440打流量，download最多只能打到35~40Mbps，雖然已經高於友人家中的網路頻寬，同時也發現訊號有稍微減弱，身為資工人，實在很想解決這問題，所以嘗試了許多招式，特此紀錄。</p>
 <hr>
-<h3 id="0x01-嘗試上Qualcomm-Fast-Path的Patch"><a href="#0x01-嘗試上Qualcomm-Fast-Path的Patch" class="headerlink" title="0x01 嘗試上Qualcomm Fast Path的Patch"></a>0x01 嘗試上Qualcomm Fast Path的Patch</h3><p>WR940N V5採用的SoC是TP9343，是一款Qualcomm的QCA9561閹割版 (少了USB以及PCIe的支援)，所以也是有支援Qualcomm的Fast Path技術，雖然在嘗試前我們就知道Fast Path應該只會對於<code>NAT&lt;-&gt;WAN</code>的效能有顯著提升，而我們先前測試都在NAT內，不過死馬當活馬醫，想說在enable這功能的同時，會不會順便改進一下Wireless的效能。</p>
+<h3 id="0x01-嘗試上Qualcomm-Fast-Path的Patch"><a href="#0x01-嘗試上Qualcomm-Fast-Path的Patch" class="headerlink" title="0x01 嘗試上Qualcomm Fast Path的Patch"></a>0x01 嘗試上Qualcomm Fast Path的Patch</h3><p>WR940N V5採用的SoC是TP9343，所以也是有支援Qualcomm的Fast Path技術，雖然在嘗試前我們就知道Fast Path應該只會對於<code>NAT&lt;-&gt;WAN</code>的效能有顯著提升，而我們先前測試都在NAT內，不過死馬當活馬醫，想說在enable這功能的同時，會不會順便改進一下Wireless的效能。</p>
 <p>想不到初次嘗試就碰的一鼻子灰，我們嘗試包<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a>論壇上<code>gwlim</code><a href="https://forum.lede-project.org/t/qualcomm-fast-path-for-lede/4582" target="_blank" rel="external">提供的patch</a>，結果發現他的patch似乎包了整個完整的SDK，導致包出來的image超過機器僅有的4MB Flash，幾經嘗試拔除一堆套件 e.g. LuCi、opkg、OpenVPN等等等，還是遠超過4MB，就在準備放棄時，<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>突然發現了有人做了一個<a href="https://forum.lede-project.org/t/qualcomm-fast-path-for-lede/4582/443" target="_blank" rel="external">精簡版的patch</a>，嘗試打上那個patch後，總算成功包好firmware，結果刷上測試，立刻澆了一桶冷水，wireless效能完全沒有顯著改善，GG斯米達。</p>
 <p>** 學到技能：包LEDE firmware + 上LEDE Patch</p>
 <h3 id="0x02-嘗試增加TX-Power-方法1"><a href="#0x02-嘗試增加TX-Power-方法1" class="headerlink" title="0x02 嘗試增加TX Power (方法1)"></a>0x02 嘗試增加TX Power (方法1)</h3><p>ssh進去LEDE後，發現wlan0的tx power只有20dbm，透過 <code>iw reg get</code>發現雖然Global設定在<code>TW</code>，但是<code>phy#0</code>卻是選擇US，所以我們懷疑firmware有限制wireless的TX Power，所以就嘗試修改這個限制，根據<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>開示，在TP-Link上這個限制應該是存在ART partition裡面，同時也超有耐心的教導該如何更改，步驟如下：</p>
@@ -86,12 +86,14 @@
     
     <summary type="html">
     
-      &lt;p&gt;近期朋友入手一台TP-Link WR940N V5，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。&lt;br&gt;
+      &lt;p&gt;近期朋友入手一台TP-Link WR940N V5，是一款使用TP9343 SOC (Qualcomm的QCA9561閹割版，少了USB以及PCIe的支援)擁有4MB flash及32MB ROM，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。&lt;br&gt;
     
     </summary>
     
     
       <category term="網路技術" scheme="http://blog.clyang.net/tags/%E7%B6%B2%E8%B7%AF%E6%8A%80%E8%A1%93/"/>
+    
+      <category term="TP9343" scheme="http://blog.clyang.net/tags/TP9343/"/>
     
       <category term="LEDE Project" scheme="http://blog.clyang.net/tags/LEDE-Project/"/>
     
