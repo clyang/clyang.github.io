@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://blog.clyang.net/"/>
-  <updated>2017-09-01T12:37:18.971Z</updated>
+  <updated>2017-09-01T13:49:23.176Z</updated>
   <id>http://blog.clyang.net/</id>
   
   <author>
@@ -16,24 +16,24 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>TP-Link 940N V5無線網路速度與穩定度的大奮戰</title>
+    <title>TP-Link 940N V5無線網路速度與穩定度的大奮戰 (OpenWrt/LEDE)</title>
     <link href="http://blog.clyang.net/2017/09/01/tplink-940n-v5-lede-wifi-patch/"/>
     <id>http://blog.clyang.net/2017/09/01/tplink-940n-v5-lede-wifi-patch/</id>
     <published>2017-09-01T04:33:44.000Z</published>
-    <updated>2017-09-01T12:37:18.971Z</updated>
+    <updated>2017-09-01T13:49:23.176Z</updated>
     
-    <content type="html"><![CDATA[<p>近期朋友入手一台TP-Link WR940N V5，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以就直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。<br><a id="more"></a></p>
-<p>我本身對於AP也不是非常懂，於是請教了在某AP ODM大廠就職的<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>，根據他Google一番，問題似乎發生在TP-Link依舊採用Atheros rate control algorithm，但這algorithm在訊號擁擠的環境下，表現很差，所以各大第三方firmware (openwrt、dd-wrt)都改用Minstrel rate algorithm，而TP-Link or 他的BSP廠也沒有上對應的patch。<a href="https://patchwork.kernel.org/patch/2676971/" target="_blank" rel="external">詳情可以參考</a>:</p>
+    <content type="html"><![CDATA[<p>近期朋友入手一台TP-Link WR940N V5，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。<br><a id="more"></a></p>
+<p>我本身對AP也不是非常懂，於是請教了在某AP ODM大廠就職的<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>，根據他Google一番，問題似乎發生在TP-Link依舊採用Atheros rate control algorithm，但這algorithm在訊號擁擠的環境下，表現很差，所以各大第三方firmware (<a href="https://openwrt.org/" target="_blank" rel="external">Openwrt</a>、dd-wrt)都改用<a href="https://lwn.net/Articles/376765/" target="_blank" rel="external">minstrel_ht</a> rate algorithm，而TP-Link or 他的BSP廠也沒有上對應的patch。<a href="https://patchwork.kernel.org/patch/2676971/" target="_blank" rel="external">詳情可以參考</a>:</p>
 <blockquote>
 <p>The ath9k rate control algorithm has various architectural issues that make it a poor fit in scenarios like congested environments etc.</p>
 </blockquote>
 <p>我在晚上尖峰時段在這機器附近掃瞄了一下，周遭最少有21~25台AP，不可不謂<code>擁擠</code>啊，本想說在TP-Link官網上找找有沒有新的Firmware，結果發現超妙的一件事情，我在官網根本找不到V5的版本，本以為是不是買到水貨，還好在NCC網站上有查到資訊，最起碼是官方貨。</p>
-<p>唯一解法就是刷第三方韌體，剛好前陣子才看到<a href="https://lede-project.org/" target="_blank" rel="external">LEDE (Linux Embedded Development Environment)專案</a>，是一個based on<a href="https://openwrt.org/" target="_blank" rel="external">Openwrt</a>的專案，目的在改善Openwrt開發緩慢、開發過程透明度不足以及跟使用者互動極差的缺點，可惜在官方網站只列出支援WR940N <code>V4</code>，所以只好再次請教<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>，在他比較TP-Link的GPL code後，確認<code>v5</code>跟<code>v4</code>應該是同樣的硬體，所以可以直接刷<code>v4</code>的firmware。</p>
-<p>刷的過程本以為很快很順利，本以為就把firmware透過TP-Link的後台上傳LEDE firmware即可，結果發現TP-Link竟然開始會檢查是不是官方firwmare，在<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>檢查了bootloader code後，發現雖然TFTP也會檢查product version，但卻檢查的不太嚴謹，所以只需要把下載回來的firmware (-factory.bin結尾那個)更名為<code>wr940nv5_tp_recovery.bin</code>，然後使用TFTP刷進去即可（刷法Google一下即可）。</p>
-<p>刷好後，觀察了一兩天，Wifi不穩的問題煙消雲散，但卻發現一個詭異的問題，Wifi的download速度一直上不去(upload可以打到80多Mpbs)，在LEDE上跑了iperf3當server，然後用T440打流量，download最多只能打到35~40Mbps，雖然已經高於友人家中的網路頻寬，同時也發現訊號有稍微減弱，身為資工人，實在很想解決這問題，所以嘗試了許多招式，特此紀錄。</p>
+<p>唯一解法就是刷第三方韌體，剛好前陣子才看到<a href="https://lede-project.org/" target="_blank" rel="external">LEDE (Linux Embedded Development Environment)專案</a>，是一個based on <a href="https://openwrt.org/" target="_blank" rel="external">Openwrt</a>的專案，目的在改善<a href="https://openwrt.org/" target="_blank" rel="external">Openwrt</a>開發緩慢、開發過程透明度不足以及跟使用者互動極差的缺點，可惜在官方網站只列出支援WR940N <code>V4</code>，所以只好再次請教<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>，在他比較TP-Link的GPL code後，確認<code>v5</code>跟<code>v4</code>應該是同樣的硬體，所以可以直接刷<code>v4</code>的firmware。</p>
+<p>刷的過程本想應該很順利，以為就把firmware透過TP-Link的後台上傳<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a> firmware即可，結果發現TP-Link竟然開始會檢查是不是官方firwmare，在<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>檢查了bootloader code後，發現雖然TFTP也會檢查product version，但卻檢查的不太嚴謹，所以只需要把下載回來的firmware (-factory.bin結尾那個)更名為<code>wr940nv5_tp_recovery.bin</code>，然後使用TFTP刷進去即可（刷法Google一下即可）。</p>
+<p>刷好後，觀察了一兩天，Wi-fi不穩的問題煙消雲散，但卻發現一個詭異的問題，Wi-fi的download速度一直上不去(upload可以打到80多Mpbs)，在<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a>上跑了iperf3當server，然後用T440打流量，download最多只能打到35~40Mbps，雖然已經高於友人家中的網路頻寬，同時也發現訊號有稍微減弱，身為資工人，實在很想解決這問題，所以嘗試了許多招式，特此紀錄。</p>
 <hr>
-<h3 id="0x01-嘗試上Qualcomm-Fast-Path"><a href="#0x01-嘗試上Qualcomm-Fast-Path" class="headerlink" title="0x01 嘗試上Qualcomm Fast Path"></a>0x01 嘗試上Qualcomm Fast Path</h3><p>WR940N V5採用SoC是TP9343，是一款Qualcomm的QCA9561閹割版 (少了USB以及PCIe的支援)，所以也是有支援Qualcomm的Fast Path技術，雖然在嘗試前我們就知道Fast Path應該只會對於<code>NAT&lt;-&gt;WAN</code>的效能有顯著提升，不過我們先前測試都在NAT內，不過死馬當活馬醫，想說在enable這功能的同時，會不會順便改進一下Wireless的效能。</p>
-<p>想不到初次嘗試就碰的一鼻子灰，我們嘗試包LEDE論壇上<code>gwlim</code><a href="https://forum.lede-project.org/t/qualcomm-fast-path-for-lede/4582" target="_blank" rel="external">提供的patch</a>，結果發現他的patch似乎包了整個完整的SDK，導致包出來的image超過機器僅有的4MB Flash，幾經嘗試拔除一堆套件 e.g. LuCi、opkg、OpenVPN等等等，還是遠超過4MB，就在準備放棄時，<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>突然發現了有人做了一個<a href="https://forum.lede-project.org/t/qualcomm-fast-path-for-lede/4582/443" target="_blank" rel="external">精簡版的patch</a>，嘗試打上那個patch後，總算成功包好firmware，結果刷上測試，立刻澆了一桶冷水，wireless效能完全沒有顯著改善，GG斯米達。</p>
+<h3 id="0x01-嘗試上Qualcomm-Fast-Path的Patch"><a href="#0x01-嘗試上Qualcomm-Fast-Path的Patch" class="headerlink" title="0x01 嘗試上Qualcomm Fast Path的Patch"></a>0x01 嘗試上Qualcomm Fast Path的Patch</h3><p>WR940N V5採用的SoC是TP9343，是一款Qualcomm的QCA9561閹割版 (少了USB以及PCIe的支援)，所以也是有支援Qualcomm的Fast Path技術，雖然在嘗試前我們就知道Fast Path應該只會對於<code>NAT&lt;-&gt;WAN</code>的效能有顯著提升，而我們先前測試都在NAT內，不過死馬當活馬醫，想說在enable這功能的同時，會不會順便改進一下Wireless的效能。</p>
+<p>想不到初次嘗試就碰的一鼻子灰，我們嘗試包<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a>論壇上<code>gwlim</code><a href="https://forum.lede-project.org/t/qualcomm-fast-path-for-lede/4582" target="_blank" rel="external">提供的patch</a>，結果發現他的patch似乎包了整個完整的SDK，導致包出來的image超過機器僅有的4MB Flash，幾經嘗試拔除一堆套件 e.g. LuCi、opkg、OpenVPN等等等，還是遠超過4MB，就在準備放棄時，<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>突然發現了有人做了一個<a href="https://forum.lede-project.org/t/qualcomm-fast-path-for-lede/4582/443" target="_blank" rel="external">精簡版的patch</a>，嘗試打上那個patch後，總算成功包好firmware，結果刷上測試，立刻澆了一桶冷水，wireless效能完全沒有顯著改善，GG斯米達。</p>
 <p>** 學到技能：包LEDE firmware + 上LEDE Patch</p>
 <h3 id="0x02-嘗試增加TX-Power-方法1"><a href="#0x02-嘗試增加TX-Power-方法1" class="headerlink" title="0x02 嘗試增加TX Power (方法1)"></a>0x02 嘗試增加TX Power (方法1)</h3><p>ssh進去LEDE後，發現wlan0的tx power只有20dbm，透過 <code>iw reg get</code>發現雖然Global設定在<code>TW</code>，但是<code>phy#0</code>卻是選擇US，所以我們懷疑firmware有限制wireless的TX Power，所以就嘗試修改這個限制，根據<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>開示，在TP-Link上這個限制應該是存在ART partition裡面，同時也超有耐心的教導該如何更改，步驟如下：</p>
 <ul>
@@ -62,9 +62,9 @@
 <li><code>./reghack.mips.elf /lib/modules/*/cfg80211.ko</code></li>
 <li>reboot</li>
 </ul>
-<p>然後，發現現實毫不留情面地在給我一個大大的巴掌，毫無幫助，經過<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>大神查詢FCC的資料，發現940N V5申報最高就只能打到23dbm (22dbm + 1dbm antenna gain = 23dbm)，所以我們已經打到硬體的極限，同時他也發現另外一個有趣的事，940N V4竟然可以打到26 dbm，比較了PCB Layout發現V5應該是cost down少了三顆power amplifier，所以txpower也就打不上去了。</p>
+<p>然後，發現現實毫不留情面地在給我一個大大的巴掌，毫無幫助，經過<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>大神查詢FCC的資料，發現940N V5申報最高就只能打到23dbm (22dbm + 1dbm antenna gain = 23dbm)，所以我們已經打到硬體的極限，同時他也發現另外一個有趣的事，940N V4竟然可以打到26 dbm，比較了PCB Layout發現V5應該是cost down少了三顆power amplifier，所以txpower也就打不上去了，含淚GG思米達！</p>
 <p>** 學到技能：買AP前要看FCC申報資料，同樣型號同樣的CHIP，能打出來的txpower還是有不小差異</p>
-<h3 id="0x04-意外發現QCA9561的LNA-PA-patch"><a href="#0x04-意外發現QCA9561的LNA-PA-patch" class="headerlink" title="0x04 意外發現QCA9561的LNA/PA patch"></a>0x04 意外發現QCA9561的LNA/PA patch</h3><p>在我已經打算放棄時，隨意亂Google突然發現在LEDE官方論壇一個關於<a href="https://github.com/oe1rfc/lede-qca9561-pa-bias/commit/88dcdee6b0b86d489afb9bc54010c04063695e5e" target="_blank" rel="external">QCA9561 LNA/PA的patch</a>，想說做最後一次嘗試，就在一次的編譯了LEDE，步驟如下:</p>
+<h3 id="0x04-意外發現QCA9561的LNA-PA-patch"><a href="#0x04-意外發現QCA9561的LNA-PA-patch" class="headerlink" title="0x04 意外發現QCA9561的LNA/PA patch"></a>0x04 意外發現QCA9561的LNA/PA patch</h3><p>在我已經打算放棄時，隨意亂Google時突然發現在LEDE官方論壇一個關於<a href="https://github.com/oe1rfc/lede-qca9561-pa-bias/commit/88dcdee6b0b86d489afb9bc54010c04063695e5e" target="_blank" rel="external">QCA9561 LNA/PA的patch</a>，LEDE中的ath9k driver錯把AR9561的PA Bias level設定成AR9565的，AR9565是<code>0x1e00</code>而AR9561則是<code>0x300</code>，這個patch便是修正這錯誤讓firmware可以讀取正確的calibration資訊，所以我決定做最後一次嘗試，再一次的編譯了LEDE，步驟如下:</p>
 <ol>
 <li>git clone <a href="https://git.lede-project.org/source.git" target="_blank" rel="external">https://git.lede-project.org/source.git</a> lede &amp;&amp; cd lede</li>
 <li>./scripts/feeds update -a &amp;&amp; ./scripts/feeds install -a</li>
@@ -77,15 +77,16 @@
 <hr>
 <h1 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h1><p>整個過程如果沒有對AP極為熟悉的<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>協助，根本沒有機會解決這問題，再次感謝！也從中學到了寶貴的經驗：</p>
 <ol>
-<li>以後買AP要先查能不能刷LEDE firmware，的確如專案所稱的對使用者比較友善。</li>
-<li>除了要先查支不支援LEDE外，更要記得查詢FCC，看看實際能夠打到多強的TX Power</li>
+<li>以後買AP要先查能不能刷<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a> firmware，的確如專案所稱的對使用者比較友善。</li>
+<li>除了要先查支不支援<a href="https://lede-project.org/" target="_blank" rel="external">LEDE</a>外，更要記得查詢FCC，看看實際能夠打到多強的TX Power</li>
 <li><a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>真的超強</li>
 </ol>
-]]></content>
+<h1 id="Bonus"><a href="#Bonus" class="headerlink" title="Bonus"></a>Bonus</h1><p>附上<a href="https://github.com/terces" target="_blank" rel="external">阿水大神</a>調教過的超級瘦身版config.seed (for TL-WR940N V4/5 only)：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">CONFIG_TARGET_ar71xx=y</div><div class="line">CONFIG_TARGET_ar71xx_generic=y</div><div class="line">CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr940n-v4=y</div><div class="line">CONFIG_DEVEL=y</div><div class="line">CONFIG_TOOLCHAINOPTS=y</div><div class="line"># CONFIG_ATH9K_UBNTHSR is not set</div><div class="line"># CONFIG_GCC_USE_VERSION_5 is not set</div><div class="line">CONFIG_GCC_USE_VERSION_6=y</div><div class="line">CONFIG_GCC_VERSION=&quot;6.3.0&quot;</div><div class="line"># CONFIG_IPV6 is not set</div><div class="line"># CONFIG_KERNEL_CRASHLOG is not set</div><div class="line"># CONFIG_KERNEL_DEBUG_FS is not set</div><div class="line"># CONFIG_KERNEL_DEBUG_INFO is not set</div><div class="line"># CONFIG_KERNEL_DEBUG_KERNEL is not set</div><div class="line"># CONFIG_KERNEL_IPV6 is not set</div><div class="line"># CONFIG_KERNEL_KALLSYMS is not set</div><div class="line"># CONFIG_KERNEL_MAGIC_SYSRQ is not set</div><div class="line"># CONFIG_KERNEL_SWAP is not set</div><div class="line"># CONFIG_PACKAGE_MAC80211_DEBUGFS is not set</div><div class="line">CONFIG_PACKAGE_iperf3=y</div><div class="line">CONFIG_PACKAGE_kmod-mtd-rw=y</div><div class="line">CONFIG_PACKAGE_kmod-nls-base=y</div><div class="line">CONFIG_PACKAGE_kmod-usb-core=y</div><div class="line">CONFIG_PACKAGE_kmod-usb-ehci=y</div><div class="line">CONFIG_PACKAGE_kmod-usb-ledtrig-usbport=y</div><div class="line">CONFIG_PACKAGE_kmod-usb-ohci=y</div><div class="line">CONFIG_PACKAGE_kmod-usb2=y</div><div class="line"># CONFIG_PACKAGE_libip6tc is not set</div><div class="line">CONFIG_PACKAGE_libiwinfo-lua=y</div><div class="line">CONFIG_PACKAGE_liblua=y</div><div class="line">CONFIG_PACKAGE_libubus-lua=y</div><div class="line">CONFIG_PACKAGE_libuci-lua=y</div><div class="line">CONFIG_PACKAGE_lua=y</div><div class="line">CONFIG_PACKAGE_luci-app-firewall=y</div><div class="line">CONFIG_PACKAGE_luci-base=y</div><div class="line">CONFIG_PACKAGE_luci-lib-ip=y</div><div class="line">CONFIG_PACKAGE_luci-lib-jsonc=y</div><div class="line">CONFIG_PACKAGE_luci-lib-nixio=y</div><div class="line">CONFIG_PACKAGE_luci-mod-admin-full=y</div><div class="line">CONFIG_PACKAGE_luci-proto-ppp=y</div><div class="line">CONFIG_PACKAGE_luci-theme-bootstrap=y</div><div class="line">CONFIG_PACKAGE_rpcd=y</div><div class="line">CONFIG_PACKAGE_uhttpd=y</div><div class="line">CONFIG_PACKAGE_uhttpd-mod-ubus=y</div><div class="line">CONFIG_PACKAGE_wireless-tools=y</div><div class="line">CONFIG_STRIP_KERNEL_EXPORTS=y</div><div class="line">CONFIG_TARGET_SQUASHFS_BLOCK_SIZE=1024</div><div class="line">CONFIG_USE_MKLIBS=y</div></pre></td></tr></table></figure>]]></content>
     
     <summary type="html">
     
-      &lt;p&gt;近期朋友入手一台TP-Link WR940N V5，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以就直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。&lt;br&gt;
+      &lt;p&gt;近期朋友入手一台TP-Link WR940N V5，由於友人沒有任何特殊需求，也不需要任何fancy的功能，所以直接幫他在stock firmware中設定一下，就上線服役了，幾天後，友人反應說偶爾會有斷線的狀況，而且從Windows中重連時會短暫的搜尋不到SSID，得等一陣子才能夠再次搜尋的到，雖然發生頻率不高，但每每發生就得斷線一下，使用上的感受實在不太好。&lt;br&gt;
     
     </summary>
     
@@ -94,7 +95,7 @@
     
       <category term="LEDE Project" scheme="http://blog.clyang.net/tags/LEDE-Project/"/>
     
-      <category term="Openwrt" scheme="http://blog.clyang.net/tags/Openwrt/"/>
+      <category term="OpenWrt" scheme="http://blog.clyang.net/tags/OpenWrt/"/>
     
       <category term="TP-Link 940N v5" scheme="http://blog.clyang.net/tags/TP-Link-940N-v5/"/>
     
